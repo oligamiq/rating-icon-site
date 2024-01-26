@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "denoland.vscode-deno",
+    "inlang.vs-code-extension"
+  ],
+  "unwantedRecommendations": []
+}
