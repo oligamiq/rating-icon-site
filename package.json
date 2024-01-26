@@ -22,6 +22,8 @@
     "@astrojs/solid-js": "^4.0.1",
     "@astrojs/tailwind": "^5.1.0",
     "@supabase/supabase-js": "^2.39.3",
+    "@teachablemachine/image": "^0.8.5",
+    "@tensorflow/tfjs": "^4.16.0",
     "apexcharts": "^3.45.2",
     "astro": "^4.2.4",
     "astro-compress": "^2.2.8",
@@ -36,7 +38,7 @@
   },
   "devDependencies": {
     "@inlang/paraglide-js": "1.2.1",
-    "@inlang/paraglide-js-adapter-vite": "^1.2.8",
+    "@inlang/paraglide-js-adapter-vite": "^1.2.9",
     "supabase": "^1.136.3",
     "wrangler": "^3.24.0"
   }
