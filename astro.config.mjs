@@ -53,18 +53,24 @@ export default defineConfig({
         ja: 'ja-JP'
       }
     }
-  }), solidJs(), compress()],
+  }), solidJs(),
+  // compress(),
+  ],
   vite: {
     plugins: [paraglide({
       project: "./project.inlang",
       outdir: "./src/paraglide"
-    })]
+    }),
+  ],
+    build: {
+      minify: false
+    }
   },
   output: "hybrid",
   // server: {
   //   headers: "Access-Control-Allow-Origin: https://www.googletagmanager.com"
   // },
   adapter: cloudflare({
-    mode: "advanced"
+    mode: "advanced",
   })
 });

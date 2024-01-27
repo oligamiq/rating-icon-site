@@ -11,6 +11,10 @@ import StarModelJson from "@/aimodels/star/model.json?url";
 import StarMetadataJson from "@/aimodels/star/metadata.json";
 import StarModel from "@/aimodels/star/weights.bin?url";
 import { TwitterOpenApi } from "twitter-openapi-typescript";
+import { Buffer } from "node:buffer";
+import init, { run } from "@/pkg";
+import parseDataURL from "data-urls";
+import init_ from "@/wasm/export_wasm";
 
 const url = (import.meta.env.DEV)
   ? "http://localhost:4321"
@@ -26,15 +30,17 @@ import {
   image,
   LayersModel,
   loadLayersModel,
+  type PixelData,
   Rank,
   scalar,
   Tensor,
   tidy,
 } from "@tensorflow/tfjs";
 
-import { Bitmap, decodeJPEGFromStream, decodePNGFromStream } from "pureimage";
-
 import { Readable } from "node:stream";
+import type export_wasm from "@/wasm/export_wasm";
+import { __wbindgen_start } from "../../pkg/rating_icon_bg.wasm";
+import __wbg_init from "../../pkg/rating_icon";
 
 const useAttrModel = async (imageUrl: string): Promise<
   Array<{
@@ -97,7 +103,7 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 const predict = async (
-  imgElement: Bitmap,
+  buffer: Buffer,
   model: LayersModel,
   metaClasses: string[],
 ): Promise<
@@ -106,9 +112,16 @@ const predict = async (
     probability: number;
   }>
 > => {
+  // const sharpImage = sharp(buffer);
+  const img_alt: PixelData = {
+    data: Buffer.from(buffer),
+    width: 0,
+    height: 0,
+  };
+
   const logits = tidy(() => {
     // browser.fromPixels() returns a Tensor from an image element.
-    let img = browser.fromPixels(imgElement).toFloat();
+    let img = browser.fromPixels(img_alt).toFloat();
 
     if (
       !model.inputs[0].shape[1] || !model.inputs[0].shape[2] ||
@@ -162,32 +175,68 @@ const loadImage = async (
     probability: number;
   }>
 > => {
+  console.log("####### 1 #######");
   const data = await fetch(imageUrl);
+  console.log("####### 2 #######");
 
   const contentType = data.headers.get("Content-Type");
+  console.log("####### 3 #######");
   const buffer = await data.arrayBuffer();
 
-  const stream = bufferToStream(buffer);
+  console.log("####### 4 #######");
+  // const stream = bufferToStream(buffer);
 
+  console.log("####### 5 #######");
   if (!contentType) {
     throw new Error("Content-Type is not defined");
   }
 
-  let imageBitmap: Bitmap | null = null;
+  // console.log(wasmUrl);
+  // console.log("####### 5.1 #######");
+  // let wasmUrlFetch: Response | Uint8Array | undefined = undefined;
+  // try {
+  //   wasmUrlFetch = await fetch(wasmUrl);
+  // } catch (error) {
+  //   wasmUrlFetch = parseDataURL(wasmUrl)?.body;
+  //   if (!wasmUrlFetch) {
+  //     throw new Error("cannot parse url");
+  //   }
+  // }
+  // await init(wasmUrlFetch);
+  // console.log(wasmUrlFetch);
+  // console.log("####### 5.2 #######");
+  await run();
 
-  if ((/png/).test(contentType)) {
-    imageBitmap = await decodePNGFromStream(stream);
-  }
+  console.log("####### 6 #######");
 
-  if ((/jpe?g/).test(contentType)) {
-    imageBitmap = await decodeJPEGFromStream(stream);
-  }
+  // let imageBitmap: Bitmap | null = null;
+  // {
+  //   console.log("####### 7 #######");
+  //   const lowerCaseContentType = contentType.toLowerCase();
 
-  if (!imageBitmap) {
-    throw new Error("ImageBitmap is not defined");
-  }
+  //   console.log("####### 8 #######");
+  //   if (lowerCaseContentType.includes("png")) {
+  //     console.log("####### 9 #######");
+  //     imageBitmap = await decodePNGFromStream(stream);
+  //   }
 
-  const predictions = await predict(imageBitmap, model, classes);
+  //   console.log("####### 10 #######");
+  //   if (
+  //     lowerCaseContentType.includes("jpeg") ||
+  //     lowerCaseContentType.includes("jpg")
+  //   ) {
+  //     console.log("####### 11 #######");
+  //     imageBitmap = await decodeJPEGFromStream(stream);
+  //     console.log("####### 12 #######");
+  //   }
+  // }
+
+  // console.log("####### 12 #######");
+  // if (!imageBitmap) {
+  //   throw new Error("ImageBitmap is not defined");
+  // }
+
+  const predictions = await predict(Buffer.from(buffer), model, classes);
 
   return predictions;
 };
@@ -197,8 +246,11 @@ const bufferToStream = (binary: ArrayBuffer) => {
 
   const readableInstanceStream = new Readable({
     read() {
+      console.log("####### 13 #######");
       this.push(buffer);
+      console.log("####### 14 #######");
       this.push(null);
+      console.log("####### 15 #######");
     },
   });
 
