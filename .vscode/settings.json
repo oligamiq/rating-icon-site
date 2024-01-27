@@ -12,6 +12,10 @@
     "astrojs",
     "bindgen",
     "flowbite",
+    "googletagmanager",
+    "inlang",
+    "outdir",
+    "paraglide",
     "partytown",
     "pureimage"
   ],

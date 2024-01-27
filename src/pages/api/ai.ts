@@ -12,7 +12,7 @@ import StarMetadataJson from "@/aimodels/star/metadata.json";
 import StarModel from "@/aimodels/star/weights.bin?url";
 import { TwitterOpenApi } from "twitter-openapi-typescript";
 import { Buffer } from "node:buffer";
-import { greet } from "wasm";
+import { load_image } from "wasm";
 
 const url = (import.meta.env.DEV)
   ? "http://localhost:4321"
@@ -98,7 +98,7 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 const predict = async (
-  buffer: Buffer,
+  pixelData: PixelData,
   model: LayersModel,
   metaClasses: string[],
 ): Promise<
@@ -107,16 +107,9 @@ const predict = async (
     probability: number;
   }>
 > => {
-  // const sharpImage = sharp(buffer);
-  const img_alt: PixelData = {
-    data: Buffer.from(buffer),
-    width: 0,
-    height: 0,
-  };
-
   const logits = tidy(() => {
     // browser.fromPixels() returns a Tensor from an image element.
-    let img = browser.fromPixels(img_alt).toFloat();
+    let img = browser.fromPixels(pixelData).toFloat();
 
     if (
       !model.inputs[0].shape[1] || !model.inputs[0].shape[2] ||
@@ -174,63 +167,22 @@ const loadImage = async (
   const data = await fetch(imageUrl);
   console.log("####### 2 #######");
 
-  const contentType = data.headers.get("Content-Type");
-  console.log("####### 3 #######");
   const buffer = await data.arrayBuffer();
 
-  console.log("####### 4 #######");
-  // const stream = bufferToStream(buffer);
-
-  console.log("####### 5 #######");
-  if (!contentType) {
-    throw new Error("Content-Type is not defined");
-  }
-
-  // console.log(wasmUrl);
-  // console.log("####### 5.1 #######");
-  // let wasmUrlFetch: Response | Uint8Array | undefined = undefined;
-  // try {
-  //   wasmUrlFetch = await fetch(wasmUrl);
-  // } catch (error) {
-  //   wasmUrlFetch = parseDataURL(wasmUrl)?.body;
-  //   if (!wasmUrlFetch) {
-  //     throw new Error("cannot parse url");
-  //   }
-  // }
-  // await init(wasmUrlFetch);
-  // console.log(wasmUrlFetch);
-  greet();
+  const parseData = JSON.parse(load_image(buffer)) as {
+    data: number[];
+    width: number;
+    height: number;
+  };
+  const pixelData: PixelData = {
+    data: new Uint8Array(parseData.data),
+    width: parseData.width,
+    height: parseData.height,
+  };
 
   console.log("####### 6 #######");
 
-  // let imageBitmap: Bitmap | null = null;
-  // {
-  //   console.log("####### 7 #######");
-  //   const lowerCaseContentType = contentType.toLowerCase();
-
-  //   console.log("####### 8 #######");
-  //   if (lowerCaseContentType.includes("png")) {
-  //     console.log("####### 9 #######");
-  //     imageBitmap = await decodePNGFromStream(stream);
-  //   }
-
-  //   console.log("####### 10 #######");
-  //   if (
-  //     lowerCaseContentType.includes("jpeg") ||
-  //     lowerCaseContentType.includes("jpg")
-  //   ) {
-  //     console.log("####### 11 #######");
-  //     imageBitmap = await decodeJPEGFromStream(stream);
-  //     console.log("####### 12 #######");
-  //   }
-  // }
-
-  // console.log("####### 12 #######");
-  // if (!imageBitmap) {
-  //   throw new Error("ImageBitmap is not defined");
-  // }
-
-  const predictions = await predict(Buffer.from(buffer), model, classes);
+  const predictions = await predict(pixelData, model, classes);
 
   return predictions;
 };

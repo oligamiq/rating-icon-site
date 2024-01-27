@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "watch": "paraglide-js compile --project ./project.inlang --watch",
-    "build": "paraglide-js compile --project ./project.inlang && astro build && cargo run --bin fix_dist --release",
+    "build": "paraglide-js compile --project ./project.inlang && astro build",
     "check": "&& set NODE_OPTIONS=\"--max-old-space-size=12288\" && astro check",
     "preview": "wrangler pages dev ./dist --compatibility-flag \"nodejs_compat\"",
     "astro": "astro",
@@ -42,7 +42,6 @@
   "devDependencies": {
     "@inlang/paraglide-js": "1.2.1",
     "@inlang/paraglide-js-adapter-vite": "^1.2.10",
-    "@types/data-urls": "^3.0.4",
     "supabase": "^1.136.3",
     "wrangler": "^3.25.0"
   }
