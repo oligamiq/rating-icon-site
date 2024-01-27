@@ -1,1 +1,1 @@
-{"tfjsVersion":"1.3.1","tmVersion":"2.4.7","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2024-01-23T11:43:10.904Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["fire","water","wood","light","dark","null"],"imageSize":224}
+{"tfjsVersion":"1.3.1","tmVersion":"2.4.7","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2024-01-23T11:43:10.904Z","userMetadata":{},"modelName":"attr-image-model","labels":["fire","water","wood","light","dark","null"],"imageSize":224}
