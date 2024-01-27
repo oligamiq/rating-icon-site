@@ -1,3 +1,7 @@
+#![cfg(target_arch = "wasm32")]
+
+mod utils;
+
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -6,7 +10,7 @@ extern "C" {
     fn log(s: &str);
 }
 
-#[wasm_bindgen(start)]
-pub fn run() {
-    log("Hello, world!");
+#[wasm_bindgen]
+pub fn greet() {
+    log("Hello, tester!");
 }

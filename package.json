@@ -6,14 +6,14 @@
     "dev": "astro dev",
     "start": "astro dev",
     "watch": "paraglide-js compile --project ./project.inlang --watch",
-    "build": "paraglide-js compile --project ./project.inlang && astro build",
+    "build": "paraglide-js compile --project ./project.inlang && astro build && cargo run --bin fix_dist --release",
     "check": "&& set NODE_OPTIONS=\"--max-old-space-size=12288\" && astro check",
     "preview": "wrangler pages dev ./dist --compatibility-flag \"nodejs_compat\"",
     "astro": "astro",
     "deploy": "pnpm build && wrangler pages deploy dist",
     "backend": "supabase start",
     "postinstall": "paraglide-js compile --project ./project.inlang",
-    "postbuild": "wasm-pack build --target web --out-dir src/pkg"
+    "postbuild": "wasm-pack build --release --out-dir wasm && cargo run --bin fix_wasm_load --release"
   },
   "dependencies": {
     "@astrojs/check": "^0.4.1",
@@ -29,7 +29,6 @@
     "astro": "^4.2.6",
     "astro-compress": "^2.2.8",
     "astro-seo": "^0.8.0",
-    "data-urls": "^5.0.0",
     "flowbite": "^2.2.1",
     "nanostores": "^0.9.5",
     "pureimage": "0.4.13",

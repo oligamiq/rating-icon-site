@@ -7,6 +7,7 @@ import cloudflare from "@astrojs/cloudflare";
 import solidJs from "@astrojs/solid-js";
 
 import compress from "astro-compress";
+import { build } from 'astro';
 
 // https://astro.build/config
 export default defineConfig({
@@ -63,7 +64,9 @@ export default defineConfig({
     }),
   ],
     build: {
-      minify: false
+      minify: false,
+      // 超えたらやめる
+      assetsInlineLimit: 0,
     }
   },
   output: "hybrid",
@@ -72,5 +75,6 @@ export default defineConfig({
   // },
   adapter: cloudflare({
     mode: "advanced",
-  })
+    wasmModuleImports: true,
+  }),
 });

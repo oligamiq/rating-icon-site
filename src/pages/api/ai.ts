@@ -12,9 +12,7 @@ import StarMetadataJson from "@/aimodels/star/metadata.json";
 import StarModel from "@/aimodels/star/weights.bin?url";
 import { TwitterOpenApi } from "twitter-openapi-typescript";
 import { Buffer } from "node:buffer";
-import init, { run } from "@/pkg";
-import parseDataURL from "data-urls";
-import init_ from "@/wasm/export_wasm";
+import { greet } from "wasm";
 
 const url = (import.meta.env.DEV)
   ? "http://localhost:4321"
@@ -38,9 +36,6 @@ import {
 } from "@tensorflow/tfjs";
 
 import { Readable } from "node:stream";
-import type export_wasm from "@/wasm/export_wasm";
-import { __wbindgen_start } from "../../pkg/rating_icon_bg.wasm";
-import __wbg_init from "../../pkg/rating_icon";
 
 const useAttrModel = async (imageUrl: string): Promise<
   Array<{
@@ -204,8 +199,7 @@ const loadImage = async (
   // }
   // await init(wasmUrlFetch);
   // console.log(wasmUrlFetch);
-  // console.log("####### 5.2 #######");
-  await run();
+  greet();
 
   console.log("####### 6 #######");
 

@@ -20,7 +20,10 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
+# cloudflare dev
+.wrangler
 
 # Added by cargo
 
 /target
+
