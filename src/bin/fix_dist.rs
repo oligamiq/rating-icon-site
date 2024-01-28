@@ -1,52 +1,95 @@
-// #![cfg(not(target_arch = "wasm32"))]
-// use anyhow::{anyhow, Result};
-// use std::path::{Path, PathBuf};
-// use walkdir::WalkDir;
+#![cfg(not(target_arch = "wasm32"))]
+use anyhow::Result;
+use regex::Regex;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
+use walkdir::WalkDir;
 
-// fn main() -> Result<()> {
-//     let wasm = find_rating_icon_bg()?;
-//     let wasm_strip = wasm.strip_prefix("dist")?;
-//     let path = wasm_strip.to_string_lossy().replace("\\", "/");
-//     println!("rewrite: {path}");
-//     let worker = Path::new("dist").join("_worker.js");
-//     rewrite_import_wasm_module(&worker, &path)?;
-//     println!("rewrite: {}", worker.to_string_lossy().replace("\\", "/"));
-//     Ok(())
-// }
+// import _at from"_astro/__WASM_ASSET__L4vI4$X_.wasm";
+// import Rat from"_astro/tfjs-backend-wasm-simd.1ab1r3r.wasm";
+// import Oat from"_astro/tfjs-backend-wasm-threaded-simd.1n4oai4.wasm";
+fn main() -> Result<()> {
+    let wasm = find_rating_icon_bg()?;
+    let wasm_strip = wasm
+        .iter()
+        .map(|w| {
+            w.strip_prefix("dist/_astro")
+                .expect("strip")
+                .to_string_lossy()
+                .replace("\\", "/")
+        })
+        .collect::<Vec<_>>();
+    let worker = Path::new("dist").join("_worker.js");
+    rewrite_import_wasm_module(&worker, wasm_strip)?;
+    // println!("rewrite: {}", worker.to_string_lossy().replace("\\", "/"));
+    Ok(())
+}
 
-// // dist以下のファイルから/_astro/rating_icon_bg.?????.wasmというファイルを見つける
-// fn find_rating_icon_bg() -> Result<PathBuf> {
-//     let dist = Path::new("dist");
-//     let mut wasm = None;
-//     for entry in WalkDir::new(dist) {
-//         let entry = entry?;
-//         let filename = entry.file_name().to_str().expect("filename");
-//         if (filename.starts_with("rating_icon_bg.")) && filename.ends_with(".wasm") {
-//             wasm = Some(entry.path().to_owned());
-//             break;
-//         }
-//     }
-//     let wasm = wasm.ok_or_else(|| anyhow!("rating_icon_bg.wasm not found"))?;
-//     Ok(wasm)
-// }
+// dist以下のファイルから/_astro/?????.wasmというファイルを見つける
+fn find_rating_icon_bg() -> Result<Vec<PathBuf>> {
+    let dist = Path::new("dist");
+    let mut wasm = Vec::new();
+    for entry in WalkDir::new(dist) {
+        let entry = entry?;
+        let filename = entry.file_name().to_str().expect("filename");
+        if filename.ends_with(".wasm") {
+            wasm.push(entry.path().to_owned());
+        }
+    }
+    Ok(wasm)
+}
 
-// // 特定のファイルを開き、`import wasmModule from`で始まる行を探して書き換える
-// fn rewrite_import_wasm_module(path: &Path, wasm: &str) -> Result<()> {
-//     let new_import = format!("import wasmModule from \"{wasm}\";");
-//     let src = std::fs::read_to_string(path)?;
-//     let mut lines = src.lines().collect::<Vec<_>>();
-//     let mut found = false;
-//     for line in &mut lines {
-//         if line.starts_with("import wasmModule from ") {
-//             *line = new_import.as_str();
-//             found = true;
-//             break;
-//         }
-//     }
-//     if !found {
-//         return Err(anyhow!("import wasmModule from not found"));
-//     }
-//     let src = lines.join("\n");
-//     std::fs::write(path, src)?;
-//     Ok(())
-// }
+// 特定のファイルを開き、`import ??? from`の場所を探して書き換える
+fn rewrite_import_wasm_module(path: &Path, mut wasm: Vec<String>) -> Result<()> {
+    let src = std::fs::read_to_string(path)?;
+    let mut lines = src.lines().map(|m| m.into()).collect::<Vec<String>>();
+    let reg = Regex::new(r#"import ([\w]+) from"_astro/([\w$-\.]+)\.wasm";"#)?;
+    let items = lines.iter().enumerate().fold(
+        HashMap::new(),
+        |mut vec: HashMap<usize, Vec<(String, String, String)>>, (num, line)| {
+            let cup = reg
+                .captures_iter(line)
+                .map(|m| m.extract())
+                .collect::<Vec<_>>();
+            if cup.len() > 0 {
+                vec.insert(
+                    num,
+                    cup.into_iter().fold(
+                        Vec::new(),
+                        |mut m: Vec<(String, String, String)>, (name, [a, b])| {
+                            let b = format!("{b}.wasm");
+                            // wasmのどこに含まれるもの
+                            if let Some(i) = wasm.iter().position(|w| *w == b) {
+                                wasm.remove(i);
+                            } else {
+                                m.push((name.into(), a.into(), b));
+                            }
+                            m
+                        },
+                    ),
+                );
+                vec
+            } else {
+                vec
+            }
+        },
+    );
+    // println!("items: {:#?}", items);
+    // println!("wasm: {:#?}", wasm);
+
+    lines.iter_mut().enumerate().for_each(|(num, line)| {
+        if let Some(items) = items.get(&num) {
+            for ((name, a, _), wasm) in items.iter().zip(wasm.iter()).collect::<Vec<_>>() {
+                let new_import = format!(r#"import {a} from"_astro/{wasm}";"#);
+                println!("rewrite: {name} -> {new_import}");
+                let new_line = line.replace(name, &new_import);
+                *line = new_line;
+            }
+        }
+    });
+    let src = lines.join("\n");
+    std::fs::write(path, src)?;
+    Ok(())
+}

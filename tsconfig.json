@@ -10,5 +10,8 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ESNext",
+    "types": [
+      "@types/emscripten"
+    ]
   }
 }

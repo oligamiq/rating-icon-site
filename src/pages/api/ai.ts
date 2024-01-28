@@ -30,12 +30,19 @@ import {
   loadLayersModel,
   type PixelData,
   Rank,
+  ready,
   scalar,
+  setBackend,
   Tensor,
   tidy,
 } from "@tensorflow/tfjs";
 
 import { Readable } from "node:stream";
+
+import tfjsWasm from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?module";
+import tfjsWasmSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?module";
+import tfjsWasmThreadedSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?module";
+import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 
 const useAttrModel = async (imageUrl: string): Promise<
   Array<{
@@ -77,6 +84,8 @@ const useStarModel = async (imageUrl: string): Promise<
 };
 
 export const GET: APIRoute = async ({ request }) => {
+  console.log(`start time: ${new Date().getTime()}`);
+
   const twitter = new URL(request.url).searchParams.get("twitter");
   // const twitterImage = `https://twitter.com/${twitter}/photo`;
 
@@ -84,11 +93,21 @@ export const GET: APIRoute = async ({ request }) => {
     throw new Error("twitter is not defined");
   }
 
-  const twitterImage = await getUserNameFromTwitter(twitter);
+  setWasmPaths({
+    "tfjs-backend-wasm.wasm": tfjsWasm,
+    "tfjs-backend-wasm-simd.wasm": tfjsWasmSimd,
+    "tfjs-backend-wasm-threaded-simd.wasm": tfjsWasmThreadedSimd,
+  });
 
-  const attrPrediction = await useAttrModel(twitterImage);
-
-  const starPrediction = await useStarModel(twitterImage);
+  const [attrPrediction, starPrediction] = await (async () => {
+    await setBackend("wasm");
+    await ready();
+    const twitterImage = await getUserNameFromTwitter(twitter);
+    return await Promise.all([
+      useAttrModel(twitterImage),
+      useStarModel(twitterImage),
+    ]);
+  })();
 
   const response = new Response(JSON.stringify({
     attr: attrPrediction,
@@ -134,6 +153,8 @@ const predict = async (
       model.inputs[0].shape[2],
       model.inputs[0].shape[3],
     ]);
+
+    console.log("predict time: " + new Date().getTime());
 
     return model.predict(batched);
   });

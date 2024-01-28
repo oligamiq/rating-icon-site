@@ -54,7 +54,15 @@ export default defineConfig({
       }
     }
   }), solidJs(),
-  compress(),
+  compress({
+    JavaScript: {
+      terser: {
+        compress: {
+          typeofs: false
+        }
+      }
+    }
+  }),
   ],
   vite: {
     plugins: [paraglide({
