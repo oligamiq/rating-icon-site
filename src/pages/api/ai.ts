@@ -93,6 +93,9 @@ export const GET: APIRoute = async ({ request }) => {
     throw new Error("twitter is not defined");
   }
 
+  globalThis.location = globalThis.location ?? new URL(url);
+
+  console.log(tfjsWasm, tfjsWasmSimd, tfjsWasmThreadedSimd);
   setWasmPaths({
     "tfjs-backend-wasm.wasm": tfjsWasm,
     "tfjs-backend-wasm-simd.wasm": tfjsWasmSimd,
@@ -100,7 +103,11 @@ export const GET: APIRoute = async ({ request }) => {
   });
 
   const [attrPrediction, starPrediction] = await (async () => {
-    await setBackend("wasm");
+    if (await setBackend("wasm")) {
+      console.log("WASM WAS LOADED");
+    } else {
+      console.log("WASM WAS NOT LOADED");
+    }
     await ready();
     const twitterImage = await getUserNameFromTwitter(twitter);
     return await Promise.all([
@@ -154,7 +161,7 @@ const predict = async (
       model.inputs[0].shape[3],
     ]);
 
-    console.log("predict time: " + new Date().getTime());
+    console.log(`predict time: ${new Date().getTime()}`);
 
     return model.predict(batched);
   });
