@@ -39,10 +39,10 @@ import {
 
 import { Readable } from "node:stream";
 
-import tfjsWasm from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?module";
-import tfjsWasmSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?module";
-import tfjsWasmThreadedSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?module";
-import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
+// import tfjsWasm from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?module";
+// import tfjsWasmSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?module";
+// import tfjsWasmThreadedSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?module";
+// import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 
 const useAttrModel = async (imageUrl: string): Promise<
   Array<{
@@ -93,32 +93,32 @@ export const GET: APIRoute = async ({ request }) => {
     throw new Error("twitter is not defined");
   }
 
-  globalThis.location = globalThis.location ?? new URL(url);
+  // globalThis.location = globalThis.location ?? new URL(url);
 
-  console.log(tfjsWasm, tfjsWasmSimd, tfjsWasmThreadedSimd);
-  setWasmPaths({
-    "tfjs-backend-wasm.wasm": tfjsWasm,
-    "tfjs-backend-wasm-simd.wasm": tfjsWasmSimd,
-    "tfjs-backend-wasm-threaded-simd.wasm": tfjsWasmThreadedSimd,
-  });
+  // console.log(tfjsWasm, tfjsWasmSimd, tfjsWasmThreadedSimd);
+  // setWasmPaths({
+  //   "tfjs-backend-wasm.wasm": tfjsWasm,
+  //   "tfjs-backend-wasm-simd.wasm": tfjsWasmSimd,
+  //   "tfjs-backend-wasm-threaded-simd.wasm": tfjsWasmThreadedSimd,
+  // });
 
-  const [attrPrediction, starPrediction] = await (async () => {
-    if (await setBackend("wasm")) {
-      console.log("WASM WAS LOADED");
-    } else {
-      console.log("WASM WAS NOT LOADED");
-    }
-    await ready();
-    const twitterImage = await getUserNameFromTwitter(twitter);
-    return await Promise.all([
-      useAttrModel(twitterImage),
-      useStarModel(twitterImage),
-    ]);
-  })();
+  // if (await setBackend("wasm")) {
+  //   console.log("WASM WAS LOADED");
+  // } else {
+  //   console.log("WASM WAS NOT LOADED");
+  // }
+  await setBackend("cpu");
+  await ready();
+  const twitterImage = await getUserNameFromTwitter(twitter);
+  const [attrPrediction, starPrediction] = await Promise.all([
+    useAttrModel(twitterImage),
+    useStarModel(twitterImage),
+  ]);
 
   const response = new Response(JSON.stringify({
     attr: attrPrediction,
     star: starPrediction,
+    img: twitterImage,
   }));
   return response;
 };
