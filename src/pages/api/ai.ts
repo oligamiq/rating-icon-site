@@ -11,7 +11,7 @@ import StarModelJson from "@/aimodels/star/model.json?url";
 import StarMetadataJson from "@/aimodels/star/metadata.json";
 import StarModel from "@/aimodels/star/weights.bin?url";
 import { TwitterOpenApi } from "twitter-openapi-typescript";
-import { Buffer } from "node:buffer";
+// import { Buffer } from "node:buffer";
 import { load_image } from "wasm";
 
 const url = (import.meta.env.DEV)
@@ -37,7 +37,7 @@ import {
   tidy,
 } from "@tensorflow/tfjs";
 
-import { Readable } from "node:stream";
+// import { Readable } from "node:stream";
 
 // import tfjsWasm from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm?module";
 // import tfjsWasmSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm?module";
@@ -86,7 +86,9 @@ const useStarModel = async (imageUrl: PixelData): Promise<
 export const GET: APIRoute = async ({ request }) => {
   console.log(`start time: ${new Date().getTime()}`);
 
-  const twitter = new URL(request.url).searchParams.get("twitter");
+  const new_url = new URL(request.url);
+  const twitter = new_url.searchParams.get("twitter");
+  const only = new_url.searchParams.get("only");
   // const twitterImage = `https://twitter.com/${twitter}/photo`;
 
   if (!twitter) {
@@ -113,10 +115,28 @@ export const GET: APIRoute = async ({ request }) => {
   const twitterImageUrl = await getUserNameFromTwitter(twitter);
   console.log(`twitter image url is ${twitterImageUrl}`);
   const pixelData = await getPixelData(twitterImageUrl);
-  const [attrPrediction, starPrediction] = await Promise.all([
-    useAttrModel(pixelData),
-    useStarModel(pixelData),
-  ]);
+  // const [attrPrediction, starPrediction] = await Promise.all([
+  //   useAttrModel(pixelData),
+  //   useStarModel(pixelData),
+  // ]);
+  if (only === "attr") {
+    const attrPrediction = await useAttrModel(pixelData);
+    const response = new Response(JSON.stringify({
+      attr: attrPrediction,
+      img: twitterImageUrl,
+    }));
+    return response;
+  }
+  if (only === "star") {
+    const starPrediction = await useStarModel(pixelData);
+    const response = new Response(JSON.stringify({
+      star: starPrediction,
+      img: twitterImageUrl,
+    }));
+    return response;
+  }
+  const attrPrediction = await useAttrModel(pixelData);
+  const starPrediction = await useStarModel(pixelData);
 
   const response = new Response(JSON.stringify({
     attr: attrPrediction,
@@ -225,24 +245,26 @@ const loadImage = async (
 
   const predictions = await predict(pixelData, model, classes);
 
+  console.log("####### 7 #######");
+
   return predictions;
 };
 
-const bufferToStream = (binary: ArrayBuffer) => {
-  const buffer = Buffer.from(binary); // Convert ArrayBuffer to Buffer
+// const bufferToStream = (binary: ArrayBuffer) => {
+//   const buffer = Buffer.from(binary); // Convert ArrayBuffer to Buffer
 
-  const readableInstanceStream = new Readable({
-    read() {
-      console.log("####### 13 #######");
-      this.push(buffer);
-      console.log("####### 14 #######");
-      this.push(null);
-      console.log("####### 15 #######");
-    },
-  });
+//   const readableInstanceStream = new Readable({
+//     read() {
+//       console.log("####### 13 #######");
+//       this.push(buffer);
+//       console.log("####### 14 #######");
+//       this.push(null);
+//       console.log("####### 15 #######");
+//     },
+//   });
 
-  return readableInstanceStream;
-};
+//   return readableInstanceStream;
+// };
 
 const getUserNameFromTwitter = async (twitter: string): Promise<string> => {
   const api = new TwitterOpenApi();
