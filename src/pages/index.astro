@@ -102,21 +102,21 @@ import Card from '@/components/Card.astro';
   }
 </style>
 
-<script>
-  type Tag = Array<{
-    className: string;
-    probability: number;
-  }>
+<script type="text/partytown">
+  // type Tag = Array<{
+  //   className: string;
+  //   probability: number;
+  // }>
 
   async function fetchData() {
     console.log("fetching...")
-    const loadingElem: HTMLParagraphElement | null = document.getElementById('loading') as HTMLParagraphElement | null;
+    const loadingElem/*: HTMLParagraphElement | null*/ = document.getElementById('loading')/* as HTMLParagraphElement | null*/;
     if (!loadingElem) {
       alert('What the hell?');
       return;
     }
     loadingElem.innerText = "データを取得中です。";
-    const elem: HTMLInputElement | null = document.querySelector('input[name="id"]');
+    const elem/*: HTMLInputElement | null*/ = document.querySelector('input[name="id"]');
     if (!elem) {
       alert('What the hell?');
       return;
@@ -126,7 +126,7 @@ import Card from '@/components/Card.astro';
       alert('IDを入力してください。');
       return;
     }
-    const getData = async (only: "star" | "attr") => {
+    const getData = async (only/*: "star" | "attr"*/) => {
       let data;
       try {
         const url = `https://rating-icon.pages.dev/api/ai?twitter=${id}&only=${only}`;
@@ -139,7 +139,7 @@ import Card from '@/components/Card.astro';
         try {
           console.log('メインサーバーが落ちているため、代替サーバーを使用します。');
           console.log(e);
-          const url = `https://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
+          const url = `http/s://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
           const res2 = await fetch(url);
           if (res2.status !== 200) {
             alert('代替サーバーも落ちているため、しばらくしてから再度お試しください。');
@@ -160,10 +160,10 @@ import Card from '@/components/Card.astro';
       alert('データの取得に失敗しました。');
       return;
     }
-    const star: Tag = starData.star;
-    const attr: Tag = attrData.attr;
-    const imgUrl: string = starData.img;
-    const getTop = (data: Tag) => {
+    const star/*: Tag*/ = starData.star;
+    const attr/*: Tag*/ = attrData.attr;
+    const imgUrl/*: string*/ = starData.img;
+    const getTop = (data/*: Tag*/) => {
       let top;
       let topName;
       for (const starData of data) {
@@ -175,7 +175,7 @@ import Card from '@/components/Card.astro';
       return topName;
     }
     loadingElem.innerText = "";
-    const previewElem: HTMLUListElement | null = document.getElementById('preview') as HTMLUListElement | null;
+    const previewElem/*: HTMLUListElement | null*/ = document.getElementById('preview')/* as HTMLUListElement | null*/;
     if (!previewElem) {
       alert('What the hell?');
       return;
@@ -222,7 +222,7 @@ import Card from '@/components/Card.astro';
   const input = document.querySelector('input[name="id"]');
   if (input) {
     input.addEventListener('keydown', (e) => {
-      if ((e as KeyboardEvent).key === 'Enter') {
+      if ((e/* as KeyboardEvent*/).key === 'Enter') {
         fetchData();
       }
     });
