@@ -181,7 +181,10 @@ const predict = async (
     probability: number;
   }>
 > => {
+  console.log("####### 5 #######");
   const logits = tidy(() => {
+    console.log("tidy time");
+
     // browser.fromPixels() returns a Tensor from an image element.
     let img = browser.fromPixels(pixelData).toFloat();
 
