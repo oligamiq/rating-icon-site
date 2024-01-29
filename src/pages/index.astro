@@ -136,15 +136,20 @@ import Card from '@/components/Card.astro';
         }
         data = await res.json();
       } catch (e) {
-        console.log('メインサーバーが落ちているため、代替サーバーを使用します。');
-        console.log(e);
-        const url = `https://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
-        const res2 = await fetch(url);
-        if (res2.status !== 200) {
+        try {
+          console.log('メインサーバーが落ちているため、代替サーバーを使用します。');
+          console.log(e);
+          const url = `https://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
+          const res2 = await fetch(url);
+          if (res2.status !== 200) {
+            alert('代替サーバーも落ちているため、しばらくしてから再度お試しください。');
+            return;
+          }
+          data = await res2.json();
+        } catch (e) {
           alert('代替サーバーも落ちているため、しばらくしてから再度お試しください。');
           return;
         }
-        data = await res2.json();
       }
       console.log(data);
       return data;
