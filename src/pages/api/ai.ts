@@ -51,9 +51,11 @@ const useAttrModel = async (imageUrl: PixelData): Promise<
   }>
 > => {
   console.log(AttrModelJsonUrl);
+  console.log("load model attr");
   const model = await loadLayersModel(AttrModelJsonUrl, {
     weightUrlConverter: async (_) => AttrModelUrl,
   });
+  console.log("load model attr end");
 
   const prediction = await loadImage(
     model,
