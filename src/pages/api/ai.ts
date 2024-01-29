@@ -187,12 +187,16 @@ const predict = async (
       model.inputs[0].shape[3],
     ]);
 
-    console.log(`predict time: ${new Date().getTime()}`);
+    console.log("predict time");
 
-    return model.predict(batched);
+    const predict = model.predict(batched);
+
+    return predict;
   });
 
   const values = await (logits as Tensor<Rank>).data();
+
+  console.log("get predict result");
 
   const classes = [];
   for (let i = 0; i < values.length; i++) {
