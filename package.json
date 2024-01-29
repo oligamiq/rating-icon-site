@@ -32,9 +32,6 @@
     "astro-seo": "^0.8.0",
     "flowbite": "^2.2.1",
     "nanostores": "^0.9.5",
-    "pureimage": "0.4.13",
-    "sharp": "^0.33.2",
-    "sharp-ico": "^0.1.5",
     "solid-js": "^1.8.12",
     "tailwindcss": "^3.4.1",
     "twitter-openapi-typescript": "^0.0.25",
@@ -45,6 +42,8 @@
     "@inlang/paraglide-js-adapter-vite": "^1.2.10",
     "@types/emscripten": "^1.39.10",
     "supabase": "^1.136.3",
-    "wrangler": "^3.25.0"
+    "wrangler": "^3.25.0",
+    "sharp": "^0.33.2",
+    "sharp-ico": "^0.1.5"
   }
 }

@@ -121,30 +121,50 @@ export const GET: APIRoute = async ({ request }) => {
   //   useAttrModel(pixelData),
   //   useStarModel(pixelData),
   // ]);
+
+  const headers = new Headers();
+  headers.set("Content-Type", "application/json");
+  headers.set("Access-Control-Allow-Origin", "*");
+
   if (only === "attr") {
     const attrPrediction = await useAttrModel(pixelData);
-    const response = new Response(JSON.stringify({
-      attr: attrPrediction,
-      img: twitterImageUrl,
-    }));
+    const response = new Response(
+      JSON.stringify({
+        attr: attrPrediction,
+        img: twitterImageUrl,
+      }),
+      {
+        headers: headers,
+      },
+    );
     return response;
   }
   if (only === "star") {
     const starPrediction = await useStarModel(pixelData);
-    const response = new Response(JSON.stringify({
-      star: starPrediction,
-      img: twitterImageUrl,
-    }));
+    const response = new Response(
+      JSON.stringify({
+        star: starPrediction,
+        img: twitterImageUrl,
+      }),
+      {
+        headers: headers,
+      },
+    );
     return response;
   }
   const attrPrediction = await useAttrModel(pixelData);
   const starPrediction = await useStarModel(pixelData);
 
-  const response = new Response(JSON.stringify({
-    attr: attrPrediction,
-    star: starPrediction,
-    img: twitterImageUrl,
-  }));
+  const response = new Response(
+    JSON.stringify({
+      attr: attrPrediction,
+      star: starPrediction,
+      img: twitterImageUrl,
+    }),
+    {
+      headers: headers,
+    },
+  );
   return response;
 };
 
