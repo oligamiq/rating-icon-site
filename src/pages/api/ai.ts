@@ -44,7 +44,7 @@ import { Readable } from "node:stream";
 // import tfjsWasmThreadedSimd from "@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm?module";
 // import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 
-const useAttrModel = async (imageUrl: string): Promise<
+const useAttrModel = async (imageUrl: PixelData): Promise<
   Array<{
     className: string;
     probability: number;
@@ -64,7 +64,7 @@ const useAttrModel = async (imageUrl: string): Promise<
   return prediction;
 };
 
-const useStarModel = async (imageUrl: string): Promise<
+const useStarModel = async (imageUrl: PixelData): Promise<
   Array<{
     className: string;
     probability: number;
@@ -109,18 +109,44 @@ export const GET: APIRoute = async ({ request }) => {
   // }
   await setBackend("cpu");
   await ready();
-  const twitterImage = await getUserNameFromTwitter(twitter);
+  console.log(`get twitter image url from ${twitter}`);
+  const twitterImageUrl = await getUserNameFromTwitter(twitter);
+  console.log(`twitter image url is ${twitterImageUrl}`);
+  const pixelData = await getPixelData(twitterImageUrl);
   const [attrPrediction, starPrediction] = await Promise.all([
-    useAttrModel(twitterImage),
-    useStarModel(twitterImage),
+    useAttrModel(pixelData),
+    useStarModel(pixelData),
   ]);
 
   const response = new Response(JSON.stringify({
     attr: attrPrediction,
     star: starPrediction,
-    img: twitterImage,
+    img: twitterImageUrl,
   }));
   return response;
+};
+
+const getPixelData = async (imageUrl: string): Promise<PixelData> => {
+  console.log("####### start getPixelData #######");
+  const data = await fetch(imageUrl);
+  console.log("####### fetch getPixelData #######");
+
+  const buffer = await data.arrayBuffer();
+
+  const parseData = JSON.parse(load_image(buffer)) as {
+    data: number[];
+    width: number;
+    height: number;
+  };
+  const pixelData: PixelData = {
+    data: new Uint8Array(parseData.data),
+    width: parseData.width,
+    height: parseData.height,
+  };
+
+  console.log("####### get getPixelData #######");
+
+  return pixelData;
 };
 
 const predict = async (
@@ -183,7 +209,7 @@ const predict = async (
 
 const loadImage = async (
   model: LayersModel,
-  imageUrl: string,
+  pixelData: PixelData,
   classes: string[],
 ): Promise<
   Array<{
@@ -191,23 +217,6 @@ const loadImage = async (
     probability: number;
   }>
 > => {
-  console.log("####### 1 #######");
-  const data = await fetch(imageUrl);
-  console.log("####### 2 #######");
-
-  const buffer = await data.arrayBuffer();
-
-  const parseData = JSON.parse(load_image(buffer)) as {
-    data: number[];
-    width: number;
-    height: number;
-  };
-  const pixelData: PixelData = {
-    data: new Uint8Array(parseData.data),
-    width: parseData.width,
-    height: parseData.height,
-  };
-
   console.log("####### 6 #######");
 
   const predictions = await predict(pixelData, model, classes);
