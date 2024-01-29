@@ -297,6 +297,7 @@ const getUserNameFromTwitter = async (twitter: string): Promise<string> => {
   const responseTwitter = await client.getUserApi().getUserByScreenName({
     screenName: twitter,
   });
+  // responseTwitter.data.user?.legacy
 
   const url = responseTwitter.data.user?.legacy.profileImageUrlHttps;
 
@@ -304,5 +305,7 @@ const getUserNameFromTwitter = async (twitter: string): Promise<string> => {
     throw new Error("url is not defined");
   }
 
-  return url;
+  const new_url = url.replace("_normal", "_200x200");
+
+  return new_url;
 };

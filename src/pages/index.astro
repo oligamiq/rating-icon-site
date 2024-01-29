@@ -9,12 +9,17 @@ import Card from '@/components/Card.astro';
 		<p class="instructions">
       このサイトは、アイコンの属性及びレア度を判断するサイトです。<br>
 		</p>
-		<ul role="list" class="link-card-grid">
-      <!-- Twitterのユーザ名を入力させる -->
-      <p>TwitterのIDを入力してください。</p>
+    <!-- Twitterのユーザ名を入力させる -->
+    <p>TwitterのIDを入力してください。</p><br>
+    <p class="flex flex-row">
       <input type="text" name="id" placeholder="TwitterのIDを入力してください。" required>
-      <button id="submit_botton">送信</button>
-		</ul>
+      <button id="submit_botton" class="flex justify-center btn btn-blue">送信</button>
+    </p>
+    <p id="loading" class="center"></p><br>
+    <div class="flex justify-center">
+      <ul id="preview">
+      </ul>
+    </div>
 	</main>
 </Layout>
 
@@ -76,19 +81,41 @@ import Card from '@/components/Card.astro';
 		padding: 0;
 	}
   input {
-    width: 100%;
+    width: calc(100% - 100px);
     height: 40px;
-    padding: 0 10px;
+    padding: 0px 10px;
     font-size: 16px;
     border-radius: 4px;
     border: 1px solid #ccc;
     outline: none;
     color: #333;
+    margin: 0 10px;
+  }
+  .btn {
+    @apply font-bold py-2 px-4 rounded;
+  }
+  .btn-blue {
+    @apply bg-blue-500 text-white;
+  }
+  .btn-blue:hover {
+    @apply bg-blue-700;
   }
 </style>
 
 <script>
+  type Tag = Array<{
+    className: string;
+    probability: number;
+  }>
+
   async function fetchData() {
+    console.log("fetching...")
+    const loadingElem: HTMLParagraphElement | null = document.getElementById('loading') as HTMLParagraphElement | null;
+    if (!loadingElem) {
+      alert('What the hell?');
+      return;
+    }
+    loadingElem.innerText = "データを取得中です。";
     const elem: HTMLInputElement | null = document.querySelector('input[name="id"]');
     if (!elem) {
       alert('What the hell?');
@@ -99,13 +126,100 @@ import Card from '@/components/Card.astro';
       alert('IDを入力してください。');
       return;
     }
-    const url = `https://rating-icon.pages.dev/api/ai?twitter=${id}&only=star`;
-    const res = await fetch(url);
-    const data = await res.json();
-    console.log(data);
+    const getData = async (only: "star" | "attr") => {
+      let data;
+      try {
+        const url = `https://rating-icon.pages.dev/api/ai?twitter=${id}&only=${only}`;
+        const res = await fetch(url);
+        if (res.status !== 200) {
+          throw new Error('メインサーバーが落ちているため、代替サーバーを使用します。');
+        }
+        data = await res.json();
+      } catch (e) {
+        console.log('メインサーバーが落ちているため、代替サーバーを使用します。');
+        console.log(e);
+        const url = `https://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
+        const res2 = await fetch(url);
+        if (res2.status !== 200) {
+          alert('代替サーバーも落ちているため、しばらくしてから再度お試しください。');
+          return;
+        }
+        data = await res2.json();
+      }
+      console.log(data);
+      return data;
+    }
+    const starData = await getData("star");
+    const attrData = await getData("attr");
+    if (!starData || !attrData) {
+      alert('データの取得に失敗しました。');
+      return;
+    }
+    const star: Tag = starData.star;
+    const attr: Tag = attrData.attr;
+    const imgUrl: string = starData.img;
+    const getTop = (data: Tag) => {
+      let top;
+      let topName;
+      for (const starData of data) {
+        if (!top || starData.probability > top.probability) {
+          top = starData;
+          topName = starData.className;
+        }
+      }
+      return topName;
+    }
+    loadingElem.innerText = "";
+    const previewElem: HTMLUListElement | null = document.getElementById('preview') as HTMLUListElement | null;
+    if (!previewElem) {
+      alert('What the hell?');
+      return;
+    }
+    const starTop = getTop(star);
+    const attrTop = getTop(attr);
+    const starElem = document.createElement('li');
+    const divElem = document.createElement('div');
+    divElem.style.display = 'flex';
+    divElem.style.alignItems = 'center';
+    divElem.style.marginBottom = '20px';
+    divElem.style.justifyContent = 'center';
+    // 横に並べる
+    const imgElem = document.createElement('img');
+    const starTextElem = document.createElement('p');
+    const attrTextElem = document.createElement('p');
+    imgElem.src = imgUrl;
+    imgElem.width = 100;
+    imgElem.height = 100;
+    imgElem.alt = 'アイコン';
+    imgElem.style.borderRadius = '50%';
+    imgElem.style.marginRight = '20px';
+    starTextElem.innerText = `レア度: ${starTop}`;
+    attrTextElem.innerText = `属性: ${attrTop}`;
+    starTextElem.style.marginRight = '20px';
+    starTextElem.style.fontSize = '20px';
+    attrTextElem.style.fontSize = '20px';
+    // id
+    const idElem = document.createElement('p');
+    idElem.innerText = `ID: ${id}`;
+    idElem.style.fontSize = '20px';
+    idElem.style.marginLeft = '20px';
+    divElem.appendChild(imgElem);
+    divElem.appendChild(starTextElem);
+    divElem.appendChild(attrTextElem);
+    divElem.appendChild(idElem);
+    starElem.appendChild(divElem);
+    previewElem.appendChild(starElem);
   }
   const submitButton = document.getElementById('submit_botton');
   if (submitButton) {
     submitButton.addEventListener('click', fetchData);
+  }
+  const input = document.querySelector('input[name="id"]');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if ((e as KeyboardEvent).key === 'Enter') {
+        fetchData();
+      }
+    });
   }
 </script>
