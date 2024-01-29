@@ -74,12 +74,6 @@ import Card from '@/components/Card.astro';
 	.instructions strong {
 		color: rgb(var(--accent-light));
 	}
-	.link-card-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
-		gap: 2rem;
-		padding: 0;
-	}
   input {
     width: calc(100% - 100px);
     height: 40px;
@@ -139,7 +133,7 @@ import Card from '@/components/Card.astro';
         try {
           console.log('メインサーバーが落ちているため、代替サーバーを使用します。');
           console.log(e);
-          const url = `http/s://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
+          const url = `https://tk2-123-61994.vs.sakura.ne.jp/ai_api/api/ai?twitter=${id}&only=${only}`
           const res2 = await fetch(url);
           if (res2.status !== 200) {
             alert('代替サーバーも落ちているため、しばらくしてから再度お試しください。');
