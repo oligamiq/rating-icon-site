@@ -10,7 +10,7 @@
     "check": "&& set NODE_OPTIONS=\"--max-old-space-size=12288\" && astro check",
     "preview": "wrangler pages dev ./dist --compatibility-flag \"nodejs_compat\"",
     "astro": "astro",
-    "deploy": "pnpm build && wrangler pages deploy dist",
+    "deploy": "npm run build && wrangler pages deploy dist",
     "backend": "supabase start",
     "postinstall": "paraglide-js compile --project ./project.inlang",
     "postbuild": "wasm-pack build --release --out-dir wasm && cargo run --bin fix_wasm_load --release"
@@ -34,7 +34,7 @@
     "nanostores": "^0.9.5",
     "solid-js": "^1.8.12",
     "tailwindcss": "^3.4.1",
-    "twitter-openapi-typescript": "^0.0.25",
+    "twitter-openapi-typescript": "^0.0.33",
     "typescript": "^5.3.3"
   },
   "devDependencies": {
